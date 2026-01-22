@@ -1,0 +1,48 @@
+{
+  "name": "@ashes2echoes/test-harness",
+  "version": "1.0.0",
+  "description": "Production test harness for FORGE, HUNTER, and METATRON protocol validation",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "a2e-test": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "validate:forge": "ts-node src/validators/forge-validator.ts",
+    "validate:hunter": "ts-node src/validators/hunter-validator.ts",
+    "validate:metatron": "ts-node src/validators/metatron-validator.ts",
+    "validate:all": "ts-node src/runners/full-suite.ts",
+    "codecheck:dev": "npm run lint && npm run build",
+    "codecheck:tst": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "codecheck:prd": "npm run lint && npm run typecheck && npm run test:coverage && npm audit --audit-level=high && npm run build"
+  },
+  "keywords": ["ai", "testing", "prompt-engineering", "metatron", "forge", "hunter"],
+  "author": "Ashes2Echoes LLC",
+  "license": "PROPRIETARY",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.0",
+    "zod": "^3.22.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
