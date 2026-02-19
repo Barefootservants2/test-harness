@@ -25,17 +25,35 @@ function githubRequest(path) {
 
 function getRawFile(repo, filePath) {
   try {
-    const url = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repo}/main/${filePath}`;
+    // Use API endpoint with base64 decode to avoid CDN caching issues
+    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${repo}/contents/${filePath}`;
     const result = execSync(
-      `curl -s -H "Authorization: token ${GITHUB_TOKEN}" "${url}"`,
+      `curl -s -H "Authorization: token ${GITHUB_TOKEN}" -H "User-Agent: A2E-TestHarness/2.0" "${url}"`,
       { encoding: 'utf-8', timeout: 30000 }
     );
-    if (result.startsWith('404') || result.includes('"message":"Not Found"')) {
-      throw new Error(`File not found: ${repo}/${filePath}`);
+    const data = JSON.parse(result);
+    if (data.content) {
+      return Buffer.from(data.content, 'base64').toString('utf-8');
     }
-    return result;
+    if (data.message) {
+      throw new Error(`File not found: ${repo}/${filePath} — ${data.message}`);
+    }
+    throw new Error(`Unexpected response for ${repo}/${filePath}`);
   } catch (e) {
-    throw new Error(`Raw fetch failed: ${repo}/${filePath} — ${e.message}`);
+    // Fallback to raw endpoint for large files that API won't return inline
+    try {
+      const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repo}/main/${filePath}`;
+      const result = execSync(
+        `curl -s -H "Authorization: token ${GITHUB_TOKEN}" "${rawUrl}"`,
+        { encoding: 'utf-8', timeout: 30000 }
+      );
+      if (result.startsWith('404') || result.includes('"message":"Not Found"')) {
+        throw new Error(`File not found: ${repo}/${filePath}`);
+      }
+      return result;
+    } catch (e2) {
+      throw new Error(`Raw fetch failed: ${repo}/${filePath} — ${e2.message}`);
+    }
   }
 }
 
